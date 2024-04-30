@@ -11,10 +11,7 @@
 #include <vector>
 #include <SFML/Graphics.hpp>
 
-
 #include "utils.hpp"
 
-
-sf::RenderWindow window;
 
 using namespace std;
