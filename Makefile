@@ -4,7 +4,8 @@ COMPILER = c++
 # CFLAGS = -Wall -Wextra -Werror
 
 SRCS =	main.cpp \
-		game.cpp
+		game.cpp \
+		parcing.cpp
 
 FLAGS = -lsfml-graphics -lsfml-window -lsfml-system
 # -framework OpenGL

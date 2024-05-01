@@ -11,7 +11,5 @@
 #include <vector>
 #include <SFML/Graphics.hpp>
 
-#include "utils.hpp"
-
 
 using namespace std;
