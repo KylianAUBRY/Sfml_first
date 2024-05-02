@@ -21,12 +21,31 @@ class MyEntity : public sf::Drawable
 
                 text.setFont(font);
                 text.setString(it->second.name);
-                text.setPosition(it->second.pos.x * FACTEUR_PX, it->second.pos.y * FACTEUR_PX);
                 text.setFillColor(sf::Color(166, 166, 166));
-                text.setCharacterSize(20);
-
+                text.setPosition(it->second.pos.x * FACTEUR_PX + ((CIRCLE_OUTLINE_SIZE) / 2), it->second.pos.y * FACTEUR_PX  + ((CIRCLE_SIZE  / 2 + CIRCLE_OUTLINE_SIZE) / 2));
+                if (it->second.name.length() > 4)
+                {
+                    text.setPosition(it->second.pos.x * FACTEUR_PX + ((CIRCLE_OUTLINE_SIZE) / 2), it->second.pos.y * FACTEUR_PX  + ((CIRCLE_SIZE+ CIRCLE_OUTLINE_SIZE) / 2));
+                    text.setCharacterSize(20 - it->second.name.length());
+                    if (it->second.name.length() > 7)
+                    {
+                        text.setCharacterSize(20 - 11);
+                        text.setString(it->second.name.substr(0, 7));
+                    }
+                }
+                else
+                    text.setCharacterSize(20);
                 name_rooms.push_back(text);
             }
+            sf::VertexArray triangle(sf::TrianglesStrip, 3);
+            triangle[0].position = sf::Vector2f(500, 503);
+            triangle[1].position = sf::Vector2f(500, 498);
+            triangle[2].position = sf::Vector2f(1000, 503);
+            
+            triangle.resize(triangle.getVertexCount() + 1);
+            triangle[3].position = sf::Vector2f(1000, 498);
+            strips.push_back(triangle);
+            // strips
             return true;
         }
         
@@ -34,18 +53,25 @@ class MyEntity : public sf::Drawable
 
         virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const
         {
+            for (const sf::VertexArray& line : strips) {
+                target.draw(line, states);
+            }
             for (const sf::CircleShape& circle : rooms) {
                 target.draw(circle, states);
             }
-
             // Dessiner chaque texte sur la cible
             for (const sf::Text& text : name_rooms) {
                 target.draw(text, states);
             }
+            
+            
         }
 
         vector<sf::CircleShape> rooms;
         vector<sf::Text> name_rooms;
+
+        vector<sf::VertexArray> strips;
+
 
         sf::VertexArray m_vertices;
         sf::Texture m_tileset;
@@ -61,10 +87,6 @@ void keyboard_detection()
         return ;
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))
         window.close();
-    // else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
-    //     view.zoom(0.02f);
-    // else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
-    //     view.zoom(-0.02f);
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
         view.move(0, -SPEED_MOOV);
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
@@ -146,7 +168,6 @@ int main()
         return -1;
     }
     window.create(sf::VideoMode(800, 600), "My window", sf::Style::Close | sf::Style::Resize);
-    
     window.setVerticalSyncEnabled(true); //active la synchronisaation verticale;
 
     sf::View view2;
@@ -170,7 +191,7 @@ int main()
 
         window.setView(view);
         window.draw(entity);
-       
+
         sf::Vector2f viewCenter = view.getCenter();
         text.setString(to_string(static_cast<int>(viewCenter.x)) + " " + to_string(static_cast<int>(viewCenter.y)));
         
