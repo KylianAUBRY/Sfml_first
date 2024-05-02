@@ -3,9 +3,9 @@ NAME = project
 COMPILER = c++
 # CFLAGS = -Wall -Wextra -Werror
 
-SRCS =	main.cpp \
-		game.cpp \
-		parcing.cpp
+SRCS =	src/main.cpp \
+		src/game.cpp \
+		src/parcing.cpp
 
 FLAGS = -lsfml-graphics -lsfml-window -lsfml-system
 # -framework OpenGL
