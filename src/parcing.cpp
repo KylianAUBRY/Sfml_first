@@ -36,6 +36,8 @@ int is_room(std::string line)
     std::string arg3 = "";
     int i = 0;
     int count = 0;
+    if (line == "##start" || line == "##end")
+        return 0;
     while (line[i] == ' ')
         i++;
     if (line[i] == 'L' || line[i] == '#')
@@ -98,6 +100,8 @@ int fill_arg(Game &game) {
                 return 1;
             }
             else {
+                if (line == "##start" || line == ("##end"))
+                    continue;
                 istringstream split(line);
                 string name;
                 string cord1;

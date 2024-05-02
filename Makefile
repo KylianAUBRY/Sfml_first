@@ -1,6 +1,6 @@
 NAME = project
 
-COMPILER = c++
+COMPILER = c++ -std=c++11
 # CFLAGS = -Wall -Wextra -Werror
 
 SRCS =	src/main.cpp \
