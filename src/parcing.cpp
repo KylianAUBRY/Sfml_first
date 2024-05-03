@@ -69,10 +69,7 @@ int fill_arg(Game &game) {
     std::string end = "";
     int i = 0;
     std::string line;
-    while (1) {
-        std::getline(std::cin, line);
-        if (cin.eof())
-            break ;
+    while (std::getline(std::cin, line)) {
         if (line.empty() || is_comment(line))
             continue ;
         if (i == 0) {
@@ -141,7 +138,19 @@ int fill_arg(Game &game) {
                     cerr << "ERROR :" << endl << "The names of the links are not correct." << endl;
                     return 1;
                 }
-                it_name1->second.links.push_back(it_name2->second);
+                bool Already_exists = false;
+                for (std::vector<Room>::iterator it2 = it_name1->second.links.begin(); it2 != it_name1->second.links.end(); ++it2) {
+                    if (it2->name == it_name2->first)
+                        Already_exists = true;
+                }
+                for (std::vector<Room>::iterator it2 = it_name2->second.links.begin(); it2 != it_name2->second.links.end(); ++it2) {
+                    if (it2->name == it_name1->first)
+                        Already_exists = true;
+                }
+                if (Already_exists == false)
+                    it_name1->second.links.push_back(it_name2->second);
+                else
+                    cout << "Lien en double" << endl;
             }
         }
     }

@@ -18,6 +18,8 @@ class Room {
         std::vector <Room> links;
 };
 
+
+
 class Game {
     public :
         Game();
