@@ -4,6 +4,36 @@
 
 Game game;
 
+std::vector<Link> calculate_links();
+
+float count_dist (Position p1, Position p2) {
+    float dx = p2.x - p1.x;
+    float dy = p2.y - p1.y;
+    return std::sqrt(dx * dx + dy * dy);
+}
+
+sf::View view(sf::FloatRect(0, 0, 300, 200));
+
+void calculateTrianglePoints(const Position& p1, const Position& p2, Position& t1, Position& t2, Position& t3, Position& t4) {
+    // Calculer la pente de la droite
+    float dx = p2.x - p1.x;
+    float dy = p2.y - p1.y;
+    float len = count_dist(p1, p2);
+    float nx = dx / len;
+    float ny = dy / len;
+
+    // Calculer les décalages pour les sommets des triangles
+    float tx = -(SIZE_LINE / 2) * ny;
+    float ty = (SIZE_LINE / 2) * nx;
+
+    // Calculer les coordonnées des sommets des triangles
+    t1 = { p1.x + tx, p1.y + ty };  // Sommet supérieur gauche
+    t2 = { p1.x - tx, p1.y - ty };  // Sommet inférieur gauche
+    t3 = { p2.x + tx, p2.y + ty };  // Sommet supérieur droit
+    t4 = { p2.x - tx, p2.y - ty };  // Sommet inférieur droit
+}
+
+
 class MyEntity : public sf::Drawable {
     public :
         bool load(sf::Font &font){
@@ -15,40 +45,77 @@ class MyEntity : public sf::Drawable {
                 circle.setFillColor(sf::Color(53, 53, 53));
                 circle.setOutlineThickness(CIRCLE_OUTLINE_SIZE);
                 circle.setOutlineColor(sf::Color::Black);
-                circle.setPosition(it->second.pos.x * FACTEUR_PX, it->second.pos.y * FACTEUR_PX);
+                circle.setPosition(it->second.pos.x * FACTEUR_PX - CIRCLE_SIZE, it->second.pos.y * FACTEUR_PX - CIRCLE_SIZE);
                 rooms.push_back(circle);
 
-                text.setFont(font);
-                text.setString(it->second.name);
-                text.setFillColor(sf::Color(166, 166, 166));
-                text.setPosition(it->second.pos.x * FACTEUR_PX + ((CIRCLE_OUTLINE_SIZE) / 2), it->second.pos.y * FACTEUR_PX  + ((CIRCLE_SIZE  / 2 + CIRCLE_OUTLINE_SIZE) / 2));
-                if (it->second.name.length() > 4)
-                {
-                    text.setPosition(it->second.pos.x * FACTEUR_PX + ((CIRCLE_OUTLINE_SIZE) / 2), it->second.pos.y * FACTEUR_PX  + ((CIRCLE_SIZE+ CIRCLE_OUTLINE_SIZE) / 2));
-                    text.setCharacterSize(20 - it->second.name.length());
-                    if (it->second.name.length() > 7)
-                    {
-                        text.setCharacterSize(20 - 11);
-                        text.setString(it->second.name.substr(0, 7));
+                string labelText = it->second.name;
+                int textSize = 20;
+                if (it->second.name.size() >= 7)
+                    labelText = it->second.name.substr(0, 6);
+                if (labelText.size() > 4) {
+                    textSize = static_cast<int>(20 - 2 * (labelText.size() - 4));
+                    if (textSize < 6) {
+                        textSize = 6; // Taille minimale de la police
                     }
                 }
-                else
-                    text.setCharacterSize(20);
+                text.setFont(font);
+                text.setCharacterSize(textSize);
+                text.setString(labelText);
+                text.setFillColor(sf::Color(166, 166, 166));
+                sf::FloatRect textBounds = text.getLocalBounds();
+                text.setOrigin(textBounds.left + textBounds.width / 2.0f, textBounds.top + textBounds.height / 2.0f);
+                text.setPosition(it->second.pos.x * FACTEUR_PX, it->second.pos.y * FACTEUR_PX);
+
                 name_rooms.push_back(text);
             }
-            sf::VertexArray triangle(sf::TrianglesStrip, 3);
-            triangle[0].position = sf::Vector2f(500, 503);
-            triangle[1].position = sf::Vector2f(500, 498);
-            triangle[2].position = sf::Vector2f(1000, 503);
+            
 
-
-
-            triangle.resize(triangle.getVertexCount() + 1);
-            triangle[3].position = sf::Vector2f(1000, 498);
-            strips.push_back(triangle);
-            // strips
+            all_links = calculate_links();
+            for(std::vector<Link>::iterator it = all_links.begin(); it != all_links.end(); it++) {
+                sf::VertexArray triangle(sf::TrianglesStrip, 4);
+                bool is_triangle = false;
+                Position p1;
+                int i = 0;
+                for (std::vector<Position>::iterator it2 = it->links.begin(); it2 != it->links.end(); it2++)
+                {
+                    it2->x *= FACTEUR_PX;
+                    it2->y *= FACTEUR_PX;
+                    if (!is_triangle)
+                    {
+                        p1 = *it2;
+                        is_triangle = true;
+                        continue ;
+                    }
+                    Position t1, t2, t3, t4;
+                    calculateTrianglePoints(p1, *it2, t1, t2, t3, t4);
+                    p1 = *it2;
+                    if (i == 0)
+                    {
+                        triangle[0].position = sf::Vector2f(t1.x, t1.y);
+                        triangle[1].position = sf::Vector2f(t2.x, t2.y);
+                        triangle[2].position = sf::Vector2f(t3.x, t3.y);
+                        triangle[3].position = sf::Vector2f(t4.x, t4.y);
+                        i = 4;
+                    }
+                    else
+                    {
+                        triangle.resize(triangle.getVertexCount() + 4);
+                        triangle[i].position = sf::Vector2f(t1.x, t1.y);
+                        i++;
+                        triangle[i].position = sf::Vector2f(t2.x, t2.y);
+                        i++;
+                        triangle[i].position = sf::Vector2f(t3.x, t3.y);
+                        i++;
+                        triangle[i].position = sf::Vector2f(t4.x, t4.y);
+                        i++;
+                    }
+                }
+                if (is_triangle)
+                    strips.push_back(triangle); 
+            }
             return true;
         }
+
         
     private:
 
@@ -64,12 +131,13 @@ class MyEntity : public sf::Drawable {
             for (const sf::Text& text : name_rooms) {
                 target.draw(text, states);
             }
-            
+
             
         }
 
         vector<sf::CircleShape> rooms;
         vector<sf::Text> name_rooms;
+        vector<Link> all_links;
 
         vector<sf::VertexArray> strips;
 
@@ -78,9 +146,6 @@ class MyEntity : public sf::Drawable {
         sf::Texture m_tileset;
 
 };
-
-
-sf::View view(sf::FloatRect(0, 0, 300, 200));
 
 void keyboard_detection() {
     if (!window.hasFocus()) //si la fenettre n'est pas au premier plan 
@@ -153,22 +218,6 @@ void setView(sf::View &view2) {
     view.setViewport(sf::FloatRect(0, 0, 1, 1));
 }
 
-class Link {
-    public :
-        std::string name1;
-        Position pos1;
-        std::string name2;
-        Position pos2;
-        std::vector<Position> links;
-        float dist;
-};
-
-float count_dist (Position p1, Position p2) {
-    float dx = p2.x - p1.x;
-    float dy = p2.y - p1.y;
-    return std::sqrt(dx * dx + dy * dy);
-}
-
 bool link_exists(std::vector<Link> all_links, std::string name1, std::string name2) {
     if (all_links.size() <= 0)
         return false;
@@ -235,28 +284,28 @@ int nbIntersect(Position A, Position B, std::vector<Link>& links) {
     return nb;
 }
 
-void calculate_links() {
+std::vector<Link> calculate_links() {
     std::vector<Link> all_links = sort_links();
     if (all_links.size() <= 0)
         exit(0) ;
     for(std::vector<Link>::iterator it = all_links.begin(); it != all_links.end(); it++) {
         int nb = nbIntersect(it->pos1, it->pos2, all_links);
-        if (nb > 0)
-        {
+        if (nb > 0) {
             cout << it->name1 << " " << it->name2 << " " << nb << endl;
         }
-        it->links.push_back(it->pos1);
-        it->links.push_back(it->pos2);
+        else {
+            it->links.push_back(it->pos1);
+            it->links.push_back(it->pos2);
+        }
     }
+
+    return all_links;
 }
 
 int main() {
     if (fill_arg(game) == 1) {
         return -1;
     }
-
-    calculate_links();
-
 
     sf::Font font;
     if (!font.loadFromFile("assets/arial.ttf")) {

@@ -4,10 +4,21 @@
 class Position {
     public :
         Position();
-        Position(int x, int y);
-        int x;
-        int y;
+        Position(float x, float y);
+        float x;
+        float y;
 };
+
+class Link {
+    public :
+        std::string name1;
+        Position pos1;
+        std::string name2;
+        Position pos2;
+        std::vector<Position> links;
+        float dist;
+};
+
 
 class Room {
     public :
@@ -17,7 +28,6 @@ class Room {
         std::string name;
         std::vector <Room> links;
 };
-
 
 
 class Game {

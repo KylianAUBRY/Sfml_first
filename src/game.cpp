@@ -20,7 +20,7 @@ Room::Room(int x, int y, std::string name) : pos(x, y), name(name) {}
 
 
 
-Position::Position(int x, int y)
+Position::Position(float x, float y)
 {
     this->x = x;
     this->y = y;
